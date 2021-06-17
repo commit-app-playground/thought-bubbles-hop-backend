@@ -1,0 +1,28 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: thought-bubbles-hop-backend
+  annotations:
+    # nginx ingress
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    # cert-manager
+    ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: clusterissuer-letsencrypt-production
+    # CORS
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "thought-bubbles-hop-backend.spa.onboarding.dev"
+
+spec:
+  rules:
+  - host: thought-bubbles-hop-backend-api.onboarding.dev
+    http:
+      paths:
+        - path: /(.*)
+          backend:
+            serviceName: thought-bubbles-hop-backend
+            servicePort: http
+  tls:
+  - hosts:
+    - thought-bubbles-hop-backend-api.onboarding.dev
+    secretName: thought-bubbles-hop-backend-tls-secret

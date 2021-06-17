@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thought-bubbles-hop-backend
+spec:
+  replicas: 1
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      app: thought-bubbles-hop-backend
+  template:
+    spec:
+      containers:
+        - name: thought-bubbles-hop-backend
+          image: fake-image
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 0.1
+            limits:
+              memory: 256Mi
+              cpu: 0.5
+          ports:
+            - containerPort: 80
+              name: http
+          envFrom:
+          - configMapRef:
+              name: thought-bubbles-hop-backend-config
+          readinessProbe:
+            httpGet:
+              port: http
+              path: /
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
