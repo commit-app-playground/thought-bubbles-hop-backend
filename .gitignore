@@ -99,3 +99,8 @@ $RECYCLE.BIN/
 
 # application environment config
 .env
+
+# Flask / ML stuff
+instance/thoughtbubbles.sqlite
+thought_classifier_model
+__pycache__
