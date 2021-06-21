@@ -101,6 +101,6 @@ $RECYCLE.BIN/
 .env
 
 # Flask / ML stuff
-instance/thoughtbubbles.sqlite
+#instance/thoughtbubbles.sqlite
 thought_classifier_model
 __pycache__
