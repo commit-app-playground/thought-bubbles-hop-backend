@@ -103,3 +103,4 @@ $RECYCLE.BIN/
 # Flask / ML stuff
 thought_classifier_model
 __pycache__
+instance
