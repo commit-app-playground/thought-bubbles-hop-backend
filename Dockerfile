@@ -8,7 +8,7 @@ RUN mkdir /app
 WORKDIR /app
 ADD . /app/
 RUN pip install -r requirements.txt
-#RUN mkdir instance
+RUN mkdir instance
 RUN scripts/download-model.sh
 
 EXPOSE 80

@@ -8,7 +8,10 @@ app = Flask(__name__)
 app.config.from_mapping(
     DATABASE=os.path.join(app.instance_path, 'thoughtbubbles.sqlite')
 )
-db.init_app(app)
+with app.app_context():
+    db.init_app(app)
+    db.init_db()
+
 port = (os.environ.get("PORT", 80))
 
 predictor.init_predictor()
