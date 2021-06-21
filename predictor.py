@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow import keras
 import numpy as np
 from transformers import AutoTokenizer
+from flask import current_app
 
 SEQ_LEN = 80 # Note that this was based on the dataset where the max number of words in across all the phrases was ~80
 __model = None
@@ -20,7 +21,7 @@ def predict_classification_ids(thought_text):
     prepped_data = __prep_data(thought_text)
     predictions = __model.predict(prepped_data)
 
-    __print_predictions(predictions)
+    __print_predictions(thought_text, predictions)
 
     # Only return the top one for now
     return [np.argmax(predictions[0])] # TODO: Support returning multiple classifications above a certain threshold
@@ -42,26 +43,31 @@ def __prep_data(text):
         'attention_mask': tf.cast(tokens['attention_mask'], tf.float64)
     }
 
-def __print_predictions(predictions):
-    label_dict = {
-        0: 'joy',
-        1: 'fear',
-        2: 'anger',
-        3: 'sadness',
-        4: 'disgust',
-        5: 'shame',
-        6: 'guilt'
-    }
+def __print_predictions(thought_text, predictions):
+    with current_app.app_context(): # TODO: There has to be a better way to log from the app context
+        log_string = "" # Build up the log string and log once such that it does not get clobbered from concurrent requests
 
-    for result in predictions:
-        max_i = 0
-        max_probability = 0
-        for i, probability in enumerate(result):
-            print("emotion:", label_dict[i])
-            print("probability:", probability)
+        label_dict = {
+            0: 'joy',
+            1: 'fear',
+            2: 'anger',
+            3: 'sadness',
+            4: 'disgust',
+            5: 'shame',
+            6: 'guilt'
+        }
 
-            if probability > max_probability:
-                max_probability = probability
-                max_i = i
+        log_string += f"printing predictions for thought '{thought_text}'\n"
 
-        print("predicted predominant emotion:", label_dict[max_i])
+        for result in predictions:
+            max_i = 0
+            max_probability = 0
+            for i, probability in enumerate(result):
+                log_string += f"emotion: {label_dict[i]}\nprobability: {probability}\n"
+
+                if probability > max_probability:
+                    max_probability = probability
+                    max_i = i
+
+            log_string += f"predicted predominant emotion: {label_dict[max_i]}"
+            current_app.logger.info(log_string)
