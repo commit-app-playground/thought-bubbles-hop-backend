@@ -16,10 +16,9 @@ app.config.from_mapping(
 with app.app_context():
     db.init_app(app)
     db.init_db()
+    predictor.init_predictor()
 
 port = (os.environ.get("PORT", 80))
-
-predictor.init_predictor()
 
 
 @app.route("/")
@@ -31,8 +30,7 @@ def hello():
 
 @app.route('/findRelatedThoughts', methods=['POST'])
 def findRelatedThoughts():
-    content = request.json
-    thought = content['thoughtText']
+    thought = request.json['thoughtText']
     return thought_classifier.classify_and_return_related_thoughts(thought)
 
 
