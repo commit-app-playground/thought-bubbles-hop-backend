@@ -21,17 +21,20 @@ port = (os.environ.get("PORT", 80))
 
 predictor.init_predictor()
 
+
 @app.route("/")
 def hello():
     return {
-        "status" : "Your application is running"
+        "status": "Your application is running"
     }
+
 
 @app.route('/findRelatedThoughts', methods=['POST'])
 def findRelatedThoughts():
     content = request.json
     thought = content['thoughtText']
     return thought_classifier.classify_and_return_related_thoughts(thought)
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=port, host="0.0.0.0")

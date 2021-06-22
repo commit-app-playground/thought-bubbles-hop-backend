@@ -5,7 +5,9 @@ from transformers import AutoTokenizer
 from flask import current_app
 from prometheus_client import Counter
 
-SEQ_LEN = 80 # Note that this was based on the dataset where the max number of words in across all the phrases was ~80
+"""Service to run thoughts through the trained ML model and get predictions"""
+
+SEQ_LEN = 80  # Note that this was based on the dataset where the max number of words in across all the phrases was ~80
 __model = None
 __tokenizer = None
 
@@ -18,14 +20,18 @@ label_dict = {
     5: 'shame',
     6: 'guilt'
 }
-predicted_emotion_counter = Counter('predicted_emotion_total', 'Total Count of Predicted Emotions', ['prediction'])
+predicted_emotion_counter = Counter(
+    'predicted_emotion_total', 'Total Count of Predicted Emotions', ['prediction'])
+
 
 def init_predictor():
     global __model
     global __tokenizer
 
     __model = keras.models.load_model("thought_classifier_model")
-    __tokenizer = AutoTokenizer.from_pretrained('bert-base-cased') # Case matters for sentiment in general, e.g. when shouting on the internet
+    # Case matters for sentiment in general, e.g. when shouting on the internet
+    __tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
+
 
 def predict_classification_ids(thought_text):
     global __model
@@ -38,32 +44,36 @@ def predict_classification_ids(thought_text):
     # Only return the top one for now
     prediction = np.argmax(predictions[0])
     __record_prediction(prediction)
-    return [prediction] # TODO: Support returning multiple classifications above a certain threshold
+    # TODO: Support returning multiple classifications above a certain threshold
+    return [prediction]
+
 
 def __prep_data(text):
     global __tokenizer
-    SEQ_LEN = 80 # Based on analysis of the PsychEXP dataset, the max length of any phrase was 80 words
+    SEQ_LEN = 80  # Based on analysis of the PsychEXP dataset, the max length of any phrase was 80 words
 
     tokens = __tokenizer.encode_plus(text,
-                               max_length=SEQ_LEN,
-                               truncation=True,
-                               padding="max_length",
-                               add_special_tokens=True,
-                               return_token_type_ids=False,
-                               return_attention_mask=True,
-                               return_tensors='tf')
+                                     max_length=SEQ_LEN,
+                                     truncation=True,
+                                     padding="max_length",
+                                     add_special_tokens=True,
+                                     return_token_type_ids=False,
+                                     return_attention_mask=True,
+                                     return_tensors='tf')
     return {
         'input_ids': tf.cast(tokens['input_ids'], tf.float64),
         'attention_mask': tf.cast(tokens['attention_mask'], tf.float64)
     }
 
+
 def __record_prediction(prediction):
     prediction_label = label_dict[prediction]
     predicted_emotion_counter.labels(prediction_label).inc()
 
+
 def __print_predictions(thought_text, predictions):
-    with current_app.app_context(): # TODO: There has to be a better way to log from the app context
-        log_string = "" # Build up the log string and log once such that it does not get clobbered from concurrent requests
+    with current_app.app_context():  # TODO: There has to be a better way to log from the app context
+        log_string = ""  # Build up the log string and log once such that it does not get clobbered from concurrent requests
         log_string += f"printing predictions for thought '{thought_text}'\n"
 
         for result in predictions:
