@@ -1,6 +1,9 @@
 from db import get_db
+from dao.thought_classification_record import ThoughtClassificationRecord
+from dao.thought_record import ThoughtRecord
 
 """Code to query for and insert records into the SQLite DB"""
+
 
 class SQLiteThoughtsDao():
     def query_thoughts_by_classification_ids(self, classification_ids):
@@ -11,13 +14,12 @@ class SQLiteThoughtsDao():
             '?'*len(formatted_classification_ids))
         return db.execute(sql, formatted_classification_ids).fetchall()
 
-
     def insert_thought_with_classifications(self, classified_thought):
         stored_thought = ThoughtRecord(
             classified_thought.id, classified_thought.text)
         inserted_thought_id = self.__insert_thought(stored_thought)
-        self.__insert_thought_classifications(classified_thought, inserted_thought_id)
-
+        self.__insert_thought_classifications(
+            classified_thought, inserted_thought_id)
 
     def __insert_thought(self, stored_thought):
         db = get_db()
@@ -28,7 +30,6 @@ class SQLiteThoughtsDao():
         db.commit()
 
         return cur.lastrowid
-
 
     def __insert_thought_classifications(self, classified_thought, inserted_thought_id):
         db = get_db()
@@ -41,15 +42,3 @@ class SQLiteThoughtsDao():
                     thought_classification.thought_id, thought_classification.classification_id)
             )
             db.commit()
-
-
-class ThoughtRecord:
-    def __init__(self, id, text):  # TODO: Add created date
-        self.id = id
-        self.text = text
-
-
-class ThoughtClassificationRecord:
-    def __init__(self, thought_id, classification_id):
-        self.thought_id = thought_id
-        self.classification_id = classification_id

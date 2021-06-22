@@ -1,11 +1,12 @@
-from data_store import SQLiteThoughtsDao
-from predictor import ThoughtClassificationPredictor
+from dao.sqlite_thoughts_dao import SQLiteThoughtsDao
+from services.thought_predictor_service import ThoughtPredictorService
+from models.classified_thought import ClassifiedThought
 
 """Service to classify thoughts"""
 
 
-class ThoughtClassifier:
-    def __init__(self, dao: SQLiteThoughtsDao, predictor: ThoughtClassificationPredictor):
+class ThoughtClassificationService:
+    def __init__(self, dao: SQLiteThoughtsDao, predictor: ThoughtPredictorService):
         self.dao = dao
         self.predictor = predictor
 
@@ -32,10 +33,3 @@ class ThoughtClassifier:
 
     def __store_classified_thought(self, classified_thought):
         self.dao.insert_thought_with_classifications(classified_thought)
-
-
-class ClassifiedThought:
-    def __init__(self, id, text, classification_ids):
-        self.id = id
-        self.text = text
-        self.classification_ids = classification_ids

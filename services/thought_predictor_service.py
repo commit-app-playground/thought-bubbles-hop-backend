@@ -8,7 +8,7 @@ from prometheus_client import Counter
 """Service to run thoughts through the trained ML model and get predictions"""
 
 
-class ThoughtClassificationPredictor:
+class ThoughtPredictorService:
     SEQ_LEN = 80  # Note that this was based on the dataset where the max number of words in across all the phrases was ~80
 
     label_dict = {
