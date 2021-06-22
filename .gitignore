@@ -104,3 +104,4 @@ $RECYCLE.BIN/
 thought_classifier_model
 __pycache__
 instance
+tests/__init__.pyc
