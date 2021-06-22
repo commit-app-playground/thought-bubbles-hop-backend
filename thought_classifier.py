@@ -9,11 +9,11 @@ def classify_and_return_related_thoughts(thought_text):
     related_thoughts = __find_related_thoughts(classified_thought)
     __store_classified_thought(classified_thought)
 
-    thoughts_json = [{"text": related_thought['content']}
-                     for related_thought in related_thoughts]
+    thoughts = [{"text": related_thought['content']}
+                for related_thought in related_thoughts]
 
     return {
-        "thoughts": thoughts_json
+        "thoughts": thoughts
     }
 
 
