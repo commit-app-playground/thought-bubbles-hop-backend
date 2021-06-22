@@ -3,10 +3,22 @@ from tensorflow import keras
 import numpy as np
 from transformers import AutoTokenizer
 from flask import current_app
+from prometheus_client import Counter
 
 SEQ_LEN = 80 # Note that this was based on the dataset where the max number of words in across all the phrases was ~80
 __model = None
 __tokenizer = None
+
+label_dict = {
+    0: 'joy',
+    1: 'fear',
+    2: 'anger',
+    3: 'sadness',
+    4: 'disgust',
+    5: 'shame',
+    6: 'guilt'
+}
+predicted_emotion_counter = Counter('predicted_emotion_total', 'Total Count of Predicted Emotions', ['prediction'])
 
 def init_predictor():
     global __model
@@ -24,7 +36,9 @@ def predict_classification_ids(thought_text):
     __print_predictions(thought_text, predictions)
 
     # Only return the top one for now
-    return [np.argmax(predictions[0])] # TODO: Support returning multiple classifications above a certain threshold
+    prediction = np.argmax(predictions[0])
+    __record_prediction(prediction)
+    return [prediction] # TODO: Support returning multiple classifications above a certain threshold
 
 def __prep_data(text):
     global __tokenizer
@@ -43,20 +57,13 @@ def __prep_data(text):
         'attention_mask': tf.cast(tokens['attention_mask'], tf.float64)
     }
 
+def __record_prediction(prediction):
+    prediction_label = label_dict[prediction]
+    predicted_emotion_counter.labels(prediction_label).inc()
+
 def __print_predictions(thought_text, predictions):
     with current_app.app_context(): # TODO: There has to be a better way to log from the app context
         log_string = "" # Build up the log string and log once such that it does not get clobbered from concurrent requests
-
-        label_dict = {
-            0: 'joy',
-            1: 'fear',
-            2: 'anger',
-            3: 'sadness',
-            4: 'disgust',
-            5: 'shame',
-            6: 'guilt'
-        }
-
         log_string += f"printing predictions for thought '{thought_text}'\n"
 
         for result in predictions:

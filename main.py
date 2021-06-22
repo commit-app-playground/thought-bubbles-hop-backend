@@ -3,8 +3,13 @@ import os
 import thought_classifier
 import db
 import predictor
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from prometheus_client import make_wsgi_app
 
 app = Flask(__name__)
+app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {
+    '/metrics': make_wsgi_app()
+})
 app.config.from_mapping(
     DATABASE=os.path.join(app.instance_path, 'thoughtbubbles.sqlite')
 )
