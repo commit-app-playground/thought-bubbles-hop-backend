@@ -23,6 +23,8 @@ class ThoughtClassifierSpec(unittest.TestCase):
         result = ThoughtClassifier(
             mock_dao, mock_predictor).classify_and_return_related_thoughts(test_thought_text)
 
+        mock_predictor.predict_classification_ids.assert_called_with(
+            test_thought_text)
         mock_dao.query_thoughts_by_classification_ids.assert_called_with(
             test_classification_ids)
         self.assertEqual(result, {
