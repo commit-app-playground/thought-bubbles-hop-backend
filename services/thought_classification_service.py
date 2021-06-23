@@ -13,9 +13,13 @@ class ThoughtClassificationService:
     def classify_and_return_related_thoughts(self, user_id, thought_text):
         classified_thought = self.__classify_thought(thought_text)
         related_thoughts = self.dao.query_thoughts_by_classification_ids(
-            user_id, classified_thought.classification_ids)
+            user_id,
+            classified_thought.classification_ids
+        )
         self.dao.insert_thought_with_classifications(
-            user_id, classified_thought)
+            user_id,
+            classified_thought
+        )
 
         thoughts = [{"text": related_thought['content']}
                     for related_thought in related_thoughts]
