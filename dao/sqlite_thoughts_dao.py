@@ -6,27 +6,28 @@ from dao.thought_record import ThoughtRecord
 
 
 class SQLiteThoughtsDao():
-    def query_thoughts_by_classification_ids(self, classification_ids):
+    def query_thoughts_by_classification_ids(self, user_id, classification_ids):
         db = get_db()
 
-        formatted_classification_ids = ([str(id) for id in classification_ids])
-        sql = 'SELECT t.* FROM thoughts t INNER JOIN thought_classifications tc ON t.id = tc.thought_id WHERE tc.classification_id IN (%s)' % ','.join(
+        formatted_classification_ids = [str(id) for id in classification_ids]
+        sql = 'SELECT t.* FROM thoughts t INNER JOIN thought_classifications tc ON t.id = tc.thought_id WHERE t.user_id != ? AND tc.classification_id IN (%s)' % ','.join(
             '?'*len(formatted_classification_ids))
-        return db.execute(sql, formatted_classification_ids).fetchall()
+        params = [user_id] + formatted_classification_ids
+        return db.execute(sql, params).fetchall()
 
-    def insert_thought_with_classifications(self, classified_thought):
+    def insert_thought_with_classifications(self, user_id, classified_thought):
         stored_thought = ThoughtRecord(
             classified_thought.id, classified_thought.text)
-        inserted_thought_id = self.__insert_thought(stored_thought)
+        inserted_thought_id = self.__insert_thought(user_id, stored_thought)
         self.__insert_thought_classifications(
             classified_thought, inserted_thought_id)
 
-    def __insert_thought(self, stored_thought):
+    def __insert_thought(self, user_id, stored_thought):
         db = get_db()
 
-        sql = ''' INSERT INTO thoughts (content) VALUES (?) '''
+        sql = ''' INSERT INTO thoughts (user_id, content) VALUES (?, ?) '''
         cur = db.cursor()
-        cur.execute(sql, (stored_thought.text,))
+        cur.execute(sql, (user_id, stored_thought.text))
         db.commit()
 
         return cur.lastrowid

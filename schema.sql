@@ -3,6 +3,7 @@ DROP TABLE IF EXISTS thought_classifications;
 
 CREATE TABLE thoughts(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id VARCHAR(255) NOT NULL,
     content VARCHAR(255) NOT NULL,
     created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
