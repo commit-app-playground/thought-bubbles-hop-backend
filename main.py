@@ -33,7 +33,7 @@ thought_classification_service = ThoughtClassificationService(
 
 
 # Note that this is a highly naive and error prone way to get/set the user ID for the purposes of the hackathon.
-# It would be better to, for example, generate and sign an HTTP only JWT cookie encoded with the user ID.
+# It would be better to, for example, generate and sign a JWT cookie encoded with the user ID.
 @app.before_request
 def get_user_id_from_cookie():
     user_id = request.cookies.get('user_id')
@@ -43,7 +43,11 @@ def get_user_id_from_cookie():
 
         @after_this_request
         def set_user_id_cookie(response):
-            response.set_cookie('user_id', user_id)
+            response.set_cookie(
+                'user_id',
+                value=user_id,
+                httponly=True
+            )
             return response
 
     g.user_id = user_id
