@@ -3,15 +3,13 @@ from tensorflow import keras
 import numpy as np
 from transformers import AutoTokenizer
 from flask import current_app
-from prometheus_client import Counter
 
 """Service to run thoughts through the trained ML model and get predictions"""
 
 
 class ThoughtPredictorService:
     SEQ_LEN = 80  # Note that this was based on the dataset where the max number of words in across all the phrases was ~80
-
-    label_dict = {
+    LABEL_LOOKUP = {
         0: 'joy',
         1: 'fear',
         2: 'anger',
@@ -20,10 +18,10 @@ class ThoughtPredictorService:
         5: 'shame',
         6: 'guilt'
     }
-    predicted_emotion_counter = Counter(
-        'predicted_emotion_total', 'Total Count of Predicted Emotions', ['prediction'])
 
-    def __init__(self):
+    def __init__(self, thought_recorder):
+        self.thought_recorder = thought_recorder
+
         self.model = keras.models.load_model("thought_classifier_model")
         self.tokenizer = AutoTokenizer.from_pretrained('bert-base-cased')
 
@@ -31,7 +29,7 @@ class ThoughtPredictorService:
         prepped_data = self.__prep_data(thought_text)
         predictions = self.model.predict(prepped_data)
 
-        self.__print_predictions(thought_text, predictions)
+        self.__print_predictions(thought_text, predictions) # Print the predictions for debugging / demo purposes
 
         # Only return the top one for now
         prediction = np.argmax(predictions[0])
@@ -54,8 +52,8 @@ class ThoughtPredictorService:
         }
 
     def __record_prediction(self, prediction):
-        prediction_label = self.label_dict[prediction]
-        self.predicted_emotion_counter.labels(prediction_label).inc()
+        prediction_label = self.LABEL_LOOKUP[prediction]
+        self.thought_recorder.record(prediction_label)
 
     def __print_predictions(self, thought_text, predictions):
         with current_app.app_context():  # TODO: There has to be a better way to log from the app context
@@ -66,11 +64,11 @@ class ThoughtPredictorService:
                 max_i = 0
                 max_probability = 0
                 for i, probability in enumerate(result):
-                    log_string += f"emotion: {self.label_dict[i]}\nprobability: {probability}\n"
+                    log_string += f"emotion: {self.LABEL_LOOKUP[i]}\nprobability: {probability}\n"
 
                     if probability > max_probability:
                         max_probability = probability
                         max_i = i
 
-                log_string += f"predicted predominant emotion: {self.label_dict[max_i]}"
+                log_string += f"predicted predominant emotion: {self.LABEL_LOOKUP[max_i]}"
                 current_app.logger.info(log_string)

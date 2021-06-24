@@ -2,15 +2,17 @@ from flask import Flask, request, g
 import os
 
 from flask.ctx import after_this_request
-from services.thought_classification_service import ThoughtClassificationService
 from dao.sqlite_thoughts_dao import SQLiteThoughtsDao
 import db
+from services.thought_classification_service import ThoughtClassificationService
 from services.thought_predictor_service import ThoughtPredictorService
+from services.prometheus_thought_recording_service import PrometheusThoughtRecordingService
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from prometheus_client import make_wsgi_app
 import uuid
 
 app = Flask(__name__)
+# Expose a metrics endpoint for Prometheus to scrape
 app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {
     '/metrics': make_wsgi_app()
 })
@@ -25,10 +27,11 @@ port = (os.environ.get("PORT", 80))
 
 # Instantiate dependencies
 thoughts_dao = SQLiteThoughtsDao()
-thoughts_predictor = ThoughtPredictorService()
+thought_recorder = PrometheusThoughtRecordingService()
+thought_predictor = ThoughtPredictorService(thought_recorder)
 thought_classification_service = ThoughtClassificationService(
     thoughts_dao,
-    thoughts_predictor
+    thought_predictor
 )
 
 
