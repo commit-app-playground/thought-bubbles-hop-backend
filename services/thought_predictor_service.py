@@ -4,7 +4,7 @@ import numpy as np
 from transformers import AutoTokenizer
 from flask import current_app
 
-"""Service to run thoughts through the trained ML model and get predictions"""
+""" Service to run thoughts through the trained ML model and get predictions """
 
 
 class ThoughtPredictorService:
