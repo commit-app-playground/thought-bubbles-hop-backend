@@ -56,7 +56,7 @@ class ThoughtPredictorService:
         self.thought_recorder.record(prediction_label)
 
     def __print_predictions(self, thought_text, predictions):
-        with current_app.app_context():  # TODO: There has to be a better way to log from the app context
+        with current_app.app_context():  # TODO: There has to be a better way to log from the app context...
             log_string = ""  # Build up the log string and log once such that it does not get clobbered from concurrent requests
             log_string += f"printing predictions for thought '{thought_text}'\n"
 
